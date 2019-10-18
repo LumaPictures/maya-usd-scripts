@@ -1,5 +1,19 @@
 set -e
 
+if [[ -z "$1" ]]; then
+    echo "usage: $0 REMOTE"
+    echo "First argument must be the git remote that the pixar dev branch can be found on"
+    exit 1
+fi
+
+pxr_remote="$1"
+
+if ! git rev-parse --verify -q $pxr_remote/dev > /dev/null ; then
+    echo "Given remote '$pxr_remote' did not have a dev branch"
+    echo "(ie, '$pxr_remote/dev' did not exist)"
+    exit 1
+fi
+
 # change to git root dir
 cd "$(git rev-parse --show-toplevel)"
 
@@ -10,7 +24,7 @@ cd "$(git rev-parse --show-toplevel)"
 # 141bab7eba1d380868e822a51f8c8f85e1c0b66f - plugins/PXR_USDMaya (identical contents as above)
 # e5e10a28d0ba0535e83675399a5d15314fb79ec9 - plugin/pxr (renamed dir)
 
-dev_mergebase=$(git merge-base PXR/dev dev)
+dev_mergebase=$(git merge-base $pxr_remote/dev dev)
 pixar_dev_commit=$(git show -s --format="%H" dev)
 
 # This function will take a "stock" pixar USD repo, and rename / delete files
@@ -105,7 +119,7 @@ echo "...done renaming files"
 # patch file which will handy when doing merges.
 
 echo "Checking out latest pixar-dev commit ($pixar_dev_commit)"
-git checkout -B renamed_pxr_dev PXR/dev
+git checkout -B renamed_pxr_dev $pxr_remote/dev
 renamePixarRepo
 echo "...renaming files to match maya-usd layout..."
 git commit -a -m "Renamed / deleted files from pixar dev to match maya-usd layout"
@@ -129,7 +143,7 @@ echo "Attempting merge..."
 
 set +e
 
-if git merge PXR/dev; then
+if git merge $pxr_remote/dev; then
     echo 'merge succeeded! Unbelieveable!'
 else
     echo 'merge failed, as expected...'
@@ -178,7 +192,7 @@ echo "...done removing files."
 # make a difference... and going forward, will be easier to simply take their
 # LICENSE.txt unaltered (moved to plugin/pxr/LICENSE.txt)
 
-git show PXR/dev:LICENSE.txt > plugin/pxr/LICENSE.txt
+git show $pxr_remote/dev:LICENSE.txt > plugin/pxr/LICENSE.txt
 git add plugin/pxr/LICENSE.txt
 
 echo "Remaining conflicts to be resolved:"
