@@ -14,8 +14,14 @@ if ! git rev-parse --verify -q $pxr_remote/dev > /dev/null ; then
     exit 1
 fi
 
+THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 # change to git root dir
 cd "$(git rev-parse --show-toplevel)"
+
+function current_branch () {
+    git symbolic-ref --short -q HEAD
+}
 
 # Some commit reference points:
 
@@ -32,6 +38,7 @@ pixar_dev_commit=$(git show -s --format="%H" dev)
 
 function renamePixarRepo ()
 {
+    echo "Renaming files in $(current_branch) to match usd_maya layout..."
     cd "$(git rev-parse --show-toplevel)"
 
     # move everything in the root to plugin/pxr
@@ -79,14 +86,8 @@ function renamePixarRepo ()
     git mv plugin/pxr/third_party/maya plugin/pxr/maya
 
     delete_replace_lic=0
-    if [[ ! -f replace_lic.py ]]; then
-        delete_replace_lic=1
-        git checkout dev -- replace_lic.py
-    fi
-    python replace_lic.py --pxr
-    if (( $delete_replace_lic )); then
-        rm replace_lic.py
-    fi
+    python "${THIS_DIR}/replace_lic.py" --pxr
+    echo "Done renaming files in $(current_branch)"
 }
 
 ##############################
@@ -259,7 +260,7 @@ function applyPixarRootDiff ()
 {
     pxrPath="$1"
     adPath=plugin/pxr/"$1"
-    git apply ../pixar_1905_dev.diff --include="$adPath"
+    git apply ../pixar_dev.diff --include="$adPath"
     result="$?"
     if (( $result == 0 )); then
         echo "success!"
@@ -277,7 +278,7 @@ function applyPixarMayaDiff ()
 {
     pxrPath="$1"
     adPath=$(echo "$pxrPath" | sed -e 's~third_party/maya~plugin/pxr/maya~')
-    git apply ../pixar_1905_dev.diff --include="$adPath"
+    git apply ../pixar_dev.diff --include="$adPath"
     result="$?"
     if (( $result == 0 )); then
         echo "success!"

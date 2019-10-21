@@ -14,12 +14,18 @@ if ! git rev-parse --verify -q $remote/develop > /dev/null ; then
     exit 1
 fi
 
+THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 # change to git root dir
 cd "$(git rev-parse --show-toplevel)"
 
+function current_branch () {
+    git symbolic-ref --short -q HEAD
+}
+
 # Some commit reference points:
 
-# 19a1e755c258c9ac0d7495fa0add62508ff377a1 - plugins/AL_USDMaya (initial import of pixar from submodule)
+# 19a1e755c258c9ac0d7495fa0add62508ff377a1 - plugins/AL_USDMaya (initial import of AL from submodule)
 # 825ca13dd77af84872a063f146dee1799e8be25c - plugins/AL_USDMaya (some removals)
 # 141bab7eba1d380868e822a51f8c8f85e1c0b66f - plugins/AL_USDMaya (identical contents as above)
 # e5e10a28d0ba0535e83675399a5d15314fb79ec9 - plugin/al (renamed dir)
@@ -54,6 +60,7 @@ al_develop_commit=$(git show -s --format="%H" develop)
 
 function renameALRepo ()
 {
+    echo "Renaming files in $(current_branch) to match usd_maya layout..."
     # Get in line with e5e10a28d0ba0535e83675399a5d15314fb79ec9
     # We move in two steps because the AL repo originally has a dir called
     # "plugin", which we still want to move into plugin - ie,
@@ -81,7 +88,8 @@ function renameALRepo ()
 
     git mv plugin/al/cmake cmake
 
-    python replace_lic.py --al
+    python "${THIS_DIR}/replace_lic.py" --al
+    echo "Done renaming files in $(current_branch)"
 }
 
 ##############################
@@ -127,7 +135,7 @@ echo "Created diff of new changes to merge in"
 
 
 ###############
-# Now that we have our helper diff, merge pixar-usd dev into latest maya-usd master
+# Now that we have our helper diff, merge AL develop into latest maya-usd master
 
 git checkout dev
 
