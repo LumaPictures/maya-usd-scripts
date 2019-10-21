@@ -92,9 +92,9 @@ function renamePixarRepo ()
 ##############################
 # branch: renamed_mergebase
 ##############################
-# Make a branch that's IDENTICAL to stock 19.05, except with directory renames/
-# file moves / deletions to get files into the same place as in the master
-# branch of Maya-USD
+# Make a branch that's IDENTICAL to the last-merged pixar dev commit, except
+# with directory renames/ file moves / deletions to get files into the same
+# place as in the dev branch of Maya-USD
 # 
 # This branch is a useful reference point, and will be used to make a diff /
 # patch file which will handy when doing merges.
@@ -111,9 +111,8 @@ echo "...done renaming files"
 # branch: renamed_pxr_dev
 ##############################
 # Make a branch that's IDENTICAL to pixar's latest usd dev
-# (b29152c2896b1b4d03fddbd9c3dcaad133d2c495), except with directory renames/
-# file moves / deletions to get files into the same place as in the master
-# branch of Maya-USD
+# except with directory renames/ file moves / deletions to get files into the
+# same place as in the dev branch of Maya-USD
 # 
 # This branch is a useful reference point, and will be used to make a diff /
 # patch file which will handy when doing merges.
