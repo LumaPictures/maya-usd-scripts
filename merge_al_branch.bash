@@ -42,13 +42,20 @@ else
     dep="$3"
 fi
 
-dep="${remote}/${dep}"
-
-# get the original / unrebased branch
+# get the original / unrebased branches
 git fetch ${remote} "refs/heads/${branch}:refs/remotes/${remote}/${branch}"
+git fetch ${remote} "refs/heads/${dep}:refs/remotes/${remote}/${dep}"
+
+dep="${remote}/${dep}"
 
 # make sure our version of the branch is reset to match remote
 git checkout -B "${branch}" "${remote}/${branch}"
+
+# make sure that the branch has already merged in it's dep
+if [[ "$(githash "${branch}")" != "$(git merge-base "${branch}" "${dep}")" ]]; then
+    echo "merging ${dep} into ${branch}"
+    git merge --no-edit "${dep}"
+fi
 
 # make sure that there's only one important commit in the branch
 
@@ -61,12 +68,6 @@ if (( ${#exported_commits[@]} != 1 )); then
 fi
 
 main_commit="${exported_commits[0]}"
-
-# make sure that the branch has already merged in it's dep
-if [[ "$(githash "${branch}")" != "$(git merge-base "${branch}" "${dep}")" ]]; then
-    echo "merging ${dep} into ${branch}"
-    git merge --no-edit "${dep}"
-fi
 
 # This function will take a "stock" AnimalLogic AL_USDMaya repo, and rename /
 # delete files and folders to make it "line up" with their locations in maya-usd
@@ -170,8 +171,6 @@ else
 
     # These files were removed / we don't care about:
 
-    git rm -f CHANGELOG.md
-    git rm -f .gitignore
     git rm -f AL_USDMaya_Corporate_CLA.pdf
     git rm -f AL_USDMaya_Individual_CLA.pdf
     git rm -f CHANGELOG.md
